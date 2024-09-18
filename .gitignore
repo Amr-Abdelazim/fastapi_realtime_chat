@@ -1,0 +1,7 @@
+__pycache__
+.vscode
+.venv
+.env
+clear_database.sql
+query_sql.sql
+SQL.pgsql
