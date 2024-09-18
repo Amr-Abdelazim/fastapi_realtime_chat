@@ -1,14 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-db_url = os.getenv('DB_URL')
+from sqlalchemy.exc import SQLAlchemyError
+from fastapi import HTTPException
+from .settings import get_settings
 
 Base = declarative_base()
-engine = create_engine(db_url)
+engine = create_engine(get_settings().db_url)
 SessionLocal = sessionmaker(bind = engine)
 
 
@@ -16,6 +13,8 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail="Database error occurred")
     finally:
         db.close()
 

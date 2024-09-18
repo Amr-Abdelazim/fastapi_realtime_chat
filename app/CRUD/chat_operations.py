@@ -1,16 +1,16 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from . import models
+from .. import models
+from .user_operations import read_user
 
 
 
-def read_user(user_id: int, db: Session):
-    answer = db.query(models.User).filter(models.User.user_id == user_id)
-    return answer.first()
 
 def read_chat(chat_id: int, db: Session):
-    answer = db.query(models.Chats).filter(models.Chats.chat_id == chat_id)
-    return answer.first()
+    answer = db.query(models.Chats).filter(models.Chats.chat_id == chat_id).first()
+    if answer == None:
+        raise HTTPException(status_code=404, detail=f'Chat {chat_id} does not exist')
+    return answer
 
 def create_chat(chat: dict, db: Session):
     new_chat = models.Chats(**chat)
@@ -19,12 +19,7 @@ def create_chat(chat: dict, db: Session):
     db.refresh(new_chat)
     return new_chat
 
-def create_user(user: dict, db: Session):
-    new_user = models.User(**user)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
+
 
 def create_private_chat(user1_id: int, user2_id: int, chat_id: int, db: Session):
     if user1_id > user2_id:# ensure user1_id < user2_id
@@ -39,7 +34,7 @@ def create_private_chat(user1_id: int, user2_id: int, chat_id: int, db: Session)
 def read_private_chat(user1_id: int, user2_id: int,db: Session):
     if user1_id > user2_id:# ensure user1_id < user2_id
         user1_id, user2_id = user2_id, user1_id
-        
+
     answer = db.query(models.PrivateChats).filter(models.PrivateChats.user1_id == user1_id and models.PrivateChats.user2_id == user2_id).first()
     chat_id: int
     if answer is None:
