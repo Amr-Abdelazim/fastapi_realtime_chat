@@ -3,7 +3,7 @@ from sqlalchemy.schema import PrimaryKeyConstraint
 from sqlalchemy.sql import text
 from .database import Base
 
-class User(Base):
+class Users(Base):
     __tablename__ = 'users'
     user_id = Column(Integer, primary_key = True, autoincrement=True)
     username = Column(String, unique=True,nullable=False)
@@ -30,8 +30,8 @@ class PrivateChats(Base):
         # CheckConstraint('user1_id != user2_id', name='check_user_ids_not_equal') apply this check if you want users doesnt have chat with themself
     )
 
-class PublicChats(Base):
-    __tablename__ = 'public_chats'
+class UserChats(Base):
+    __tablename__ = 'users_chats'
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     chat_id = Column(Integer, ForeignKey('chats.chat_id'), nullable=False)
 

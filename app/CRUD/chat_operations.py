@@ -30,8 +30,14 @@ def create_private_chat(user1_id: int, user2_id: int, chat_id: int, db: Session)
     db.refresh(new_private_chat)
     return new_private_chat
 
+def link_user_with_chat(user_id: int, chat_id: int, db: Session):
+    answer = db.query(models.UserChats).filter(models.UserChats.user_id == user_id and models.UserChats.chat_id == chat_id).first()
+    if answer is None:
+        link = models.UserChats(user_id=user_id,chat_id=chat_id)
+        db.add(link)
+        db.commit()
 
-def read_private_chat(user1_id: int, user2_id: int,db: Session):
+def read_or_create_private_chat(user1_id: int, user2_id: int,db: Session):
     if user1_id > user2_id:# ensure user1_id < user2_id
         user1_id, user2_id = user2_id, user1_id
 
@@ -43,6 +49,8 @@ def read_private_chat(user1_id: int, user2_id: int,db: Session):
         create_private_chat(user1_id, user2_id, chat_id, db)
     else:
         chat_id = int(answer.chat_id)
+    link_user_with_chat(user_id=user1_id,chat_id=chat_id,db=db)
+    link_user_with_chat(user_id=user2_id,chat_id=chat_id,db=db)
     return chat_id
 
 
@@ -61,7 +69,7 @@ def create_private_message(message: dict,db: Session):# send message from user1_
     if user2 is None:
         raise HTTPException(status_code=404, detail=f'User {user2_id} does not exist')
     
-    chat_id = read_private_chat(user1_id, user2_id, db)
+    chat_id = read_or_create_private_chat(user1_id, user2_id, db)
     new_message = models.Messages(user_id= user1_id, chat_id= chat_id, message=message['message'])
     db.add(new_message)
     db.commit()
